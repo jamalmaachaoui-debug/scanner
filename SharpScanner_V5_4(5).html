@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sharp Scanner V5.4</title>
+<style>
+:root {
+  --bg:#070b14; --bg2:#0b1120; --bg3:#101828; --bg4:#161f30;
+  --border:rgba(96,165,250,0.10); --border2:rgba(96,165,250,0.28);
+  --accent:#60a5fa; --green:#34d399; --yellow:#fbbf24; --red:#f87171; --purple:#a78bfa;
+  --text:#e2e8f0; --text2:#94a3b8; --text3:#475569;
+  --card:#0d1624; --r:9px; --f:'Courier New',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--f);min-height:100vh}
+
+/* ── HEADER ── */
+header{border-bottom:1px solid var(--border);background:var(--bg2);padding:11px 20px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:30px;height:30px;border:1.5px solid var(--accent);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:14px;font-weight:bold}
+.logo-name{font-size:12px;font-weight:bold;letter-spacing:2px;color:var(--accent)}
+.logo-ver{font-size:9px;color:var(--text3);letter-spacing:1px;margin-top:1px}
+.hpills{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.pill{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:3px 11px;
+  font-size:11px;color:var(--text2);white-space:nowrap}
+.pill b{color:var(--green)}
+.pill.warn b{color:var(--red)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);
+  animation:blink 1.4s infinite;box-shadow:0 0 6px var(--green);display:inline-block;margin-right:5px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.sys-time{font-size:10px;color:var(--accent);letter-spacing:1px}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:290px 1fr;min-height:calc(100vh - 53px)}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px 12px;display:flex;flex-direction:column;gap:11px;overflow-y:auto}
+.section{display:flex;flex-direction:column;gap:7px}
+.sec-title{font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;
+  padding-bottom:4px;border-bottom:1px solid var(--border)}
+label{font-size:10px;color:var(--text2);display:block;margin-bottom:2px;letter-spacing:.5px}
+input,select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;
+  color:var(--text);font-family:var(--f);font-size:12px;padding:7px 10px;outline:none;transition:border-color .2s}
+input:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--bg3)}
+.hint{font-size:9px;color:var(--text3);margin-top:3px;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:8px;border:1px solid;border-radius:7px;font-family:var(--f);
+  font-size:11px;letter-spacing:1px;cursor:pointer;transition:all .18s;text-transform:uppercase}
+.btn-acc{border-color:var(--accent);color:var(--accent);background:rgba(96,165,250,.06)}
+.btn-acc:hover{background:rgba(96,165,250,.15)}
+.btn-green{border-color:var(--green);color:var(--green);background:rgba(52,211,153,.06)}
+.btn-green:hover{background:rgba(52,211,153,.15)}
+.btn-red{border-color:var(--red);color:var(--red);background:transparent}
+.btn-red:hover{background:rgba(248,113,113,.08)}
+.btn-scan{font-size:13px;padding:12px;font-weight:bold}
+.save-ok{font-size:10px;color:var(--green);text-align:center;display:none;margin-top:3px}
+hr{border:none;border-top:1px solid var(--border)}
+
+/* ── BOOKIE FILTER CHIPS ── */
+.bookie-filter-group{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.bk-chip{
+  font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer;
+  border:1px solid var(--border);background:var(--bg3);color:var(--text3);
+  transition:all .15s;letter-spacing:.3px;user-select:none
+}
+.bk-chip:hover{border-color:var(--text2);color:var(--text2)}
+.bk-chip.active-sharp{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,.10);font-weight:bold}
+.bk-chip.active-soft{border-color:var(--yellow);color:var(--yellow);background:rgba(251,191,36,.08);font-weight:bold}
+.bk-chip.active-both{border-color:var(--green);color:var(--green);background:rgba(52,211,153,.08);font-weight:bold}
+.bk-all{border-color:var(--accent);color:var(--accent)}
+.bk-all.active-both{background:rgba(96,165,250,.10)}
+.bk-section-label{font-size:8px;letter-spacing:1.5px;color:var(--text3);margin-top:5px;margin-bottom:1px}
+
+/* ── VOLUME FILTER ── */
+.vol-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:4px}
+.vol-btn{font-size:9px;padding:5px 3px;border-radius:5px;cursor:pointer;
+  border:1px solid var(--border);background:var(--bg3);color:var(--text3);
+  transition:all .15s;text-align:center;font-family:var(--f)}
+.vol-btn:hover{border-color:var(--green);color:var(--green)}
+.vol-btn.active{border-color:var(--green);color:var(--green);background:rgba(52,211,153,.08);font-weight:bold}
+
+/* ── INTERVAL BUTTONS ── */
+.int-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.int-btn{font-size:9px;padding:5px 2px;border-radius:5px;cursor:pointer;
+  border:1px solid var(--border);background:var(--bg3);color:var(--text3);
+  transition:all .15s;text-align:center;font-family:var(--f)}
+.int-btn:hover{border-color:var(--accent);color:var(--accent)}
+.int-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(96,165,250,.08);font-weight:bold}
+.int-cost{font-size:7px;color:var(--text3);display:block;margin-top:1px}
+
+/* ── API STATUS ── */
+.api-box{border:1px solid var(--border);border-radius:8px;padding:10px;font-size:10px}
+.api-box.ok{border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.05)}
+.api-box.err{border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.05)}
+.api-box.warn{border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.05)}
+.api-box.idle{color:var(--text3)}
+.api-title{font-weight:bold;margin-bottom:4px}
+.api-box.ok .api-title{color:var(--green)}
+.api-box.err .api-title{color:var(--red)}
+.api-box.warn .api-title{color:var(--yellow)}
+.api-msg{color:var(--text2);line-height:1.6}
+
+/* ── ODDS COUNTER ── */
+.oc-box{background:var(--bg3);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:9px}
+.oc-title{font-size:9px;letter-spacing:1.5px;color:var(--yellow);margin-bottom:5px;font-weight:bold}
+.oc-bar-wrap{background:var(--bg);border-radius:4px;height:5px;margin-bottom:5px;overflow:hidden}
+.oc-bar{height:100%;background:var(--yellow);border-radius:4px;transition:width .5s}
+.oc-bar.crit{background:var(--red)}
+.oc-row{display:flex;justify-content:space-between;align-items:center}
+.oc-num{font-size:13px;font-weight:bold;color:var(--yellow)}
+.oc-num.crit{color:var(--red)}
+.oc-hint{font-size:9px;color:var(--text3);margin-top:3px}
+
+/* ── SCORE TABLE ── */
+.sc-table{width:100%;border-collapse:collapse;font-size:10px}
+.sc-table td{padding:3px 6px}
+
+/* ── LOG ── */
+.log{background:var(--bg);border:1px solid var(--border);border-radius:7px;
+  padding:6px 9px;max-height:85px;overflow-y:auto}
+.ll{font-size:10px;line-height:1.8}
+.ll.i{color:var(--accent)} .ll.s{color:var(--green)} .ll.w{color:var(--yellow)} .ll.e{color:var(--red)} .ll.d{color:var(--text3)}
+
+/* ── MAIN ── */
+.main{padding:16px 20px;overflow-y:auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.page-lbl{font-size:10px;letter-spacing:2px;color:var(--text3)}
+
+/* ── ACTIVE FILTERS BAR ── */
+.filter-bar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;margin-bottom:14px
+}
+.fb-label{font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap}
+.fb-tag{font-size:9px;padding:3px 9px;border-radius:4px;white-space:nowrap}
+.fb-sharp{background:rgba(167,139,250,.12);color:var(--purple);border:1px solid rgba(167,139,250,.25)}
+.fb-soft{background:rgba(251,191,36,.10);color:var(--yellow);border:1px solid rgba(251,191,36,.25)}
+.fb-vol{background:rgba(52,211,153,.10);color:var(--green);border:1px solid rgba(52,211,153,.25)}
+.fb-age{background:rgba(96,165,250,.10);color:var(--accent);border:1px solid rgba(96,165,250,.25)}
+.fb-clear{margin-left:auto;font-size:9px;color:var(--red);cursor:pointer;text-decoration:underline;white-space:nowrap}
+
+/* ── AGE QUICK FILTER ── */
+.age-bar{display:flex;align-items:center;gap:7px;margin-bottom:14px;flex-wrap:wrap}
+.age-lbl{font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap}
+.age-btns{display:flex;gap:4px;flex-wrap:wrap}
+.age-btn{font-size:9px;padding:4px 10px;border-radius:5px;cursor:pointer;
+  border:1px solid var(--border);background:var(--bg3);color:var(--text2);
+  transition:all .15s;font-family:var(--f)}
+.age-btn:hover{border-color:var(--accent);color:var(--accent)}
+.age-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(96,165,250,.08);font-weight:bold}
+
+/* ── COUNTERS ── */
+.counters{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:16px}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:12px;position:relative;overflow:hidden}
+.cc::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px}
+.cc-max::after{background:var(--green)} .cc-hi::after{background:var(--yellow)}
+.cc-mid::after{background:var(--accent)} .cc-lo::after{background:var(--red)}
+.cc-lbl{font-size:8px;letter-spacing:1.5px;color:var(--text3);margin-bottom:4px}
+.cc-val{font-size:26px;font-weight:bold}
+.cc-max .cc-val{color:var(--green)} .cc-hi .cc-val{color:var(--yellow)}
+.cc-mid .cc-val{color:var(--accent)} .cc-lo .cc-val{color:var(--red)}
+.cc-sub{font-size:9px;color:var(--text3);margin-top:2px}
+
+/* ── RESULTS BAR ── */
+.res-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.res-lbl{font-size:10px;letter-spacing:2px;color:var(--text3)}
+.res-count{background:var(--bg3);border:1px solid var(--border);border-radius:20px;
+  padding:2px 10px;font-size:10px;color:var(--accent)}
+.demo-badge{font-size:9px;padding:2px 8px;border-radius:3px;letter-spacing:1px;display:none;
+  background:rgba(251,191,36,.10);color:var(--yellow);border:1px solid rgba(251,191,36,.3)}
+
+/* ── SCAN ANIM ── */
+.scanning{display:none;text-align:center;padding:34px;color:var(--accent)}
+.scanning.on{display:block}
+.scan-lbl{font-size:11px;letter-spacing:2px;margin-bottom:12px}
+.scan-track{height:2px;background:var(--bg3);width:240px;margin:0 auto;border-radius:2px;overflow:hidden}
+.scan-fill{height:100%;background:var(--accent);width:0;transition:width .5s;
+  box-shadow:0 0 8px var(--accent);border-radius:2px}
+.scan-step{font-size:9px;color:var(--text3);margin-top:9px;letter-spacing:1px}
+
+/* ── EMPTY ── */
+.empty{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:44px;text-align:center}
+.empty-icon{font-size:26px;opacity:.3;margin-bottom:10px}
+.empty-text{font-size:11px;color:var(--text3);line-height:1.9}
+
+/* ── RESULT CARD ── */
+.result{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  margin-bottom:10px;position:relative;overflow:hidden;animation:fadeIn .3s ease;transition:border-color .2s}
+.result:hover{border-color:var(--border2)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.result::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;z-index:1}
+.r-max::before{background:var(--green)} .r-hi::before{background:var(--yellow)}
+.r-mid::before{background:var(--accent)} .r-lo::before{background:var(--red)}
+
+/* Age banner */
+.age-banner{display:flex;align-items:center;justify-content:space-between;
+  padding:5px 14px 5px 17px;font-size:9px;letter-spacing:.8px;border-bottom:1px solid var(--border)}
+.ab-fresh{background:rgba(52,211,153,.07)} .ab-recent{background:rgba(251,191,36,.07)} .ab-old{background:rgba(248,113,113,.07)}
+.ab-lbl{font-weight:bold;letter-spacing:1.5px}
+.ab-fresh .ab-lbl{color:var(--green)} .ab-recent .ab-lbl{color:var(--yellow)} .ab-old .ab-lbl{color:var(--red)}
+.ab-time{color:var(--text3);font-size:9px}
+
+.rbody{padding:13px 14px 13px 17px}
+
+/* Match heading + score box */
+.rhead{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:10px}
+.rtitle{font-size:14px;font-weight:bold;color:var(--text);line-height:1.3}
+.rsub{font-size:10px;color:var(--text3);margin-top:3px}
+.score-box{width:44px;height:44px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:bold;flex-shrink:0}
+.sb-max{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+.sb-hi{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.3)}
+.sb-mid{background:rgba(96,165,250,.12);color:var(--accent);border:1px solid rgba(96,165,250,.3)}
+.sb-lo{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.3)}
+
+/* Startzeit row */
+.sz-row{display:flex;align-items:center;gap:8px;
+  background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.16);
+  border-radius:6px;padding:6px 10px;margin-bottom:9px}
+.sz-label{font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+.sz-val{font-size:14px;font-weight:bold;color:var(--accent);letter-spacing:.5px}
+.sz-live{font-size:9px;font-weight:bold;color:var(--red);letter-spacing:1.5px;
+  padding:2px 7px;background:rgba(248,113,113,.10);border:1px solid rgba(248,113,113,.25);
+  border-radius:4px;animation:blink 1.4s infinite}
+.sz-pre{font-size:9px;color:var(--text3);padding:2px 7px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:4px}
+
+/* BOOKIE DISPLAY — main feature */
+.bk-display{
+  display:flex;gap:0;margin-bottom:9px;
+  background:var(--bg3);border:1px solid var(--border2);border-radius:8px;overflow:hidden
+}
+.bk-side{flex:1;padding:9px 12px;display:flex;flex-direction:column;gap:3px}
+.bk-side.sharp-side{background:rgba(167,139,250,.07);border-right:1px solid rgba(167,139,250,.2)}
+.bk-side.soft-side{background:rgba(251,191,36,.04)}
+.bk-type{font-size:8px;letter-spacing:1.5px;font-weight:bold;text-transform:uppercase}
+.sharp-side .bk-type{color:var(--purple)} .soft-side .bk-type{color:var(--yellow)}
+.bk-name{font-size:13px;font-weight:bold;color:var(--text);margin-top:1px}
+.bk-odds{font-size:16px;font-weight:bold;margin-top:2px}
+.sharp-side .bk-odds{color:var(--purple)} .soft-side .bk-odds{color:var(--yellow)}
+.bk-vol{font-size:9px;color:var(--text3);margin-top:2px}
+.bk-vol b{color:var(--green)}
+.bk-vs{display:flex;align-items:center;padding:0 10px;color:var(--text3);font-size:11px;font-weight:bold;flex-shrink:0}
+
+/* Volume badge */
+.vol-badge{display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;padding:2px 8px;border-radius:4px;
+  background:rgba(52,211,153,.10);color:var(--green);border:1px solid rgba(52,211,153,.25)}
+.vol-badge.big{background:rgba(52,211,153,.18);font-weight:bold}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+.chip{font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:2px 8px}
+.chip.a{color:var(--accent);border-color:rgba(96,165,250,.25)}
+.chip.g{color:var(--green);border-color:rgba(52,211,153,.25)}
+.chip.o{color:var(--yellow);border-color:rgba(251,191,36,.25)}
+.chip.r{color:var(--red);border-color:rgba(248,113,113,.25)}
+.chip.p{color:var(--purple);border-color:rgba(167,139,250,.25)}
+
+/* Analysis */
+.ranalysis{background:var(--bg3);border-left:2px solid var(--border2);
+  padding:7px 10px;font-size:10px;color:var(--text2);line-height:1.7;margin-top:8px;border-radius:0 5px 5px 0}
+
+/* Actions */
+.ract{display:flex;gap:6px;margin-top:9px}
+.abt{flex:1;padding:5px 6px;border:1px solid var(--border);border-radius:6px;
+  background:transparent;color:var(--text3);font-family:var(--f);font-size:9px;
+  cursor:pointer;transition:all .15s;text-align:center}
+.abt:hover{border-color:var(--accent);color:var(--accent)}
+.abt.del:hover{border-color:var(--red);color:var(--red)}
+.raw-box{background:var(--bg);border:1px solid var(--border);border-radius:5px;
+  padding:7px;margin-top:6px;font-size:9px;color:var(--text3);max-height:60px;
+  overflow-y:auto;white-space:pre-wrap;word-break:break-all;display:none}
+
+@media(max-width:768px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{border-right:none;border-bottom:1px solid var(--border)}
+  .counters{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">▲</div>
+    <div>
+      <div class="logo-name">SHARP SCANNER</div>
+      <div class="logo-ver">V5.4 · CLOUDFLARE PROXY · ECHTE DATEN</div>
+    </div>
+  </div>
+  <div class="hpills">
+    <div class="pill">Signale: <b id="hCount">0</b></div>
+    <div class="pill">Scans: <b id="hScans">0</b></div>
+    <div class="pill" id="hOddsPill">Odds API: <b id="hOdds">0</b>/500</div>
+    <div class="pill"><span class="live-dot"></span><span id="hStatus">BEREIT</span></div>
+    <div class="sys-time" id="clock"></div>
+  </div>
+</header>
+
+<div class="layout">
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+
+  <!-- Betburger -->
+  <div class="section">
+    <div class="sec-title">⚙ Betburger API</div>
+    <div>
+      <label>ACCESS TOKEN <span style="color:var(--red);font-size:9px">PFLICHT</span></label>
+      <input type="text" id="bbToken" placeholder="Token..." autocomplete="off">
+      <div class="hint">Betburger → My Account → API Token kopieren<br>⚠ Ändert sich bei jedem Login!</div>
+    </div>
+    <div>
+      <label>API TYP</label>
+      <select id="apiType">
+        <option value="live">Live Surebets</option>
+        <option value="prematch">Prematch Surebets</option>
+        <option value="valuebet_live">Live Valuebets</option>
+        <option value="valuebet_prematch" selected>Prematch Valuebets</option>
+      </select>
+    </div>
+    <div>
+      <label>CLOUDFLARE PROXY URL <span style="color:var(--green);font-size:9px">✓ CORS-FIX</span></label>
+      <input type="text" id="proxyUrl" placeholder="https://red-bread-4ad5.jamalmaachaoui.workers.dev" autocomplete="off">
+      <div class="hint" style="color:var(--green)">✓ Dein Cloudflare Worker — löst CORS-Block dauerhaft</div>
+    </div>
+  </div>
+
+  <!-- Sharp Books Filter -->
+  <div class="section">
+    <div class="sec-title">🔵 Sharp Books Filter</div>
+    <div class="hint">Klicken = filtern. Mehrere kombinierbar.</div>
+    <div class="bk-section-label">SHARP BOOKS (Trigger)</div>
+    <div class="bookie-filter-group" id="sharpChips">
+      <span class="bk-chip bk-all active-both" data-bk="ALL_SHARP" onclick="toggleBk(this,'sharp')">Alle</span>
+      <span class="bk-chip" data-bk="pinnacle" onclick="toggleBk(this,'sharp')">Pinnacle</span>
+      <span class="bk-chip" data-bk="betcris" onclick="toggleBk(this,'sharp')">BetCris</span>
+      <span class="bk-chip" data-bk="circa" onclick="toggleBk(this,'sharp')">Circa</span>
+      <span class="bk-chip" data-bk="prophetx" onclick="toggleBk(this,'sharp')">ProphetX</span>
+      <span class="bk-chip" data-bk="novig" onclick="toggleBk(this,'sharp')">Novig</span>
+      <span class="bk-chip" data-bk="polymarket" onclick="toggleBk(this,'sharp')">Polymarket</span>
+      <span class="bk-chip" data-bk="betfair" onclick="toggleBk(this,'sharp')">Betfair</span>
+      <span class="bk-chip" data-bk="mollybet" onclick="toggleBk(this,'sharp')">Mollybet</span>
+    </div>
+    <div class="bk-section-label" style="margin-top:6px">SOFT BOOKS (Gegenseite)</div>
+    <div class="bookie-filter-group" id="softChips">
+      <span class="bk-chip bk-all active-both" data-bk="ALL_SOFT" onclick="toggleBk(this,'soft')">Alle</span>
+      <span class="bk-chip" data-bk="bet365" onclick="toggleBk(this,'soft')">Bet365</span>
+      <span class="bk-chip" data-bk="tipico" onclick="toggleBk(this,'soft')">Tipico</span>
+      <span class="bk-chip" data-bk="bwin" onclick="toggleBk(this,'soft')">Bwin</span>
+      <span class="bk-chip" data-bk="merkur" onclick="toggleBk(this,'soft')">MerkurBets</span>
+      <span class="bk-chip" data-bk="betano" onclick="toggleBk(this,'soft')">Betano</span>
+      <span class="bk-chip" data-bk="unibet" onclick="toggleBk(this,'soft')">Unibet</span>
+      <span class="bk-chip" data-bk="betway" onclick="toggleBk(this,'soft')">Betway</span>
+      <span class="bk-chip" data-bk="williamhill" onclick="toggleBk(this,'soft')">William Hill</span>
+      <span class="bk-chip" data-bk="1xbet" onclick="toggleBk(this,'soft')">1xBet</span>
+    </div>
+  </div>
+
+  <!-- Volumen Filter -->
+  <div class="section">
+    <div class="sec-title">💰 Volumen-Filter (Sharp Books)</div>
+    <div class="vol-btns" id="volBtns">
+      <button class="vol-btn active" data-vol="0" onclick="setVol(0)">Alle</button>
+      <button class="vol-btn" data-vol="500" onclick="setVol(500)">$500+</button>
+      <button class="vol-btn" data-vol="1000" onclick="setVol(1000)">$1.000+</button>
+      <button class="vol-btn" data-vol="2500" onclick="setVol(2500)">$2.500+</button>
+      <button class="vol-btn" data-vol="5000" onclick="setVol(5000)">$5.000+</button>
+      <button class="vol-btn" data-vol="10000" onclick="setVol(10000)">$10.000+</button>
+    </div>
+    <input type="number" id="minVol" value="0" placeholder="Manuell: Min. $" style="margin-top:4px">
+    <div class="hint">Nur Signale mit Sharp-Volumen ≥ diesem Betrag anzeigen</div>
+  </div>
+
+  <!-- Odds API -->
+  <div class="section">
+    <div class="sec-title">📡 Odds API (Value-Berechnung)</div>
+    <div>
+      <label>KEY <span style="font-size:9px;color:var(--text3)">optional</span></label>
+      <input type="password" id="oddsKey" placeholder="Für echtes Value % über 2%..." autocomplete="off">
+      <div class="hint" style="color:var(--green)">✓ Odds API liefert aktuelle Quotes → echtes Value % sichtbar</div>
+    </div>
+    <div>
+      <label>SPORTART</label>
+      <select id="oddsSport">
+        <option value="soccer_germany_bundesliga">⚽ Bundesliga</option>
+        <option value="soccer_uefa_europa_league" selected>⚽ UEFA Europa League</option>
+        <option value="soccer_uefa_champs_league">⚽ Champions League</option>
+        <option value="soccer_epl">⚽ Premier League</option>
+        <option value="soccer_spain_la_liga">⚽ La Liga</option>
+        <option value="soccer_italy_serie_a">⚽ Serie A</option>
+        <option value="soccer_france_ligue_one">⚽ Ligue 1</option>
+        <option value="soccer_uefa_europa_conference_league">⚽ Conference League</option>
+        <option value="basketball_nba">🏀 NBA</option>
+        <option value="americanfootball_nfl">🏈 NFL</option>
+      </select>
+    </div>
+    <div>
+      <label>SCAN-INTERVALL</label>
+      <div class="int-btns">
+        <button class="int-btn" data-v="0.5" onclick="setInt('0.5')">30s<span class="int-cost">~2880</span></button>
+        <button class="int-btn" data-v="1" onclick="setInt('1')">1 Min<span class="int-cost">~1440</span></button>
+        <button class="int-btn active" data-v="5" onclick="setInt('5')">5 Min<span class="int-cost">~288</span></button>
+        <button class="int-btn" data-v="60" onclick="setInt('60')">1 Std<span class="int-cost">~24</span></button>
+      </div>
+      <input type="hidden" id="oddsInterval" value="5">
+    </div>
+    <div class="oc-box">
+      <div class="oc-title">📊 API VERBRAUCH (500/Mo kostenlos)</div>
+      <div class="oc-bar-wrap"><div class="oc-bar" id="ocBar" style="width:0%"></div></div>
+      <div class="oc-row">
+        <span class="oc-num" id="ocNum">0</span>
+        <span style="color:var(--text3);font-size:10px">/ 500</span>
+      </div>
+      <div class="oc-hint" id="ocHint">Verbleibend: 500</div>
+      <button class="btn btn-acc" style="font-size:9px;padding:5px;margin-top:5px" onclick="resetOC()">↺ Zähler zurücksetzen</button>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="section">
+    <div class="sec-title">🎯 Score & ROI Filter</div>
+    <div class="row2">
+      <div>
+        <label>MIN. ROI %</label>
+        <input type="number" id="minRoi" value="1" min="0" step="0.1">
+      </div>
+      <div>
+        <label>MIN. SCORE</label>
+        <select id="minScore">
+          <option value="1">1+ Alle</option>
+          <option value="5" selected>5+ Hoch</option>
+          <option value="7">7+ Sehr Hoch</option>
+          <option value="9">9+ Maximal</option>
+        </select>
+      </div>
+    </div>
+    <div class="hint">Free-Plan Betburger: nur 1-2% ROI sichtbar</div>
+  </div>
+
+  <!-- Controls -->
+  <div class="section">
+    <button class="btn btn-acc" style="font-size:10px;padding:7px" onclick="saveConfig()">💾 Konfiguration speichern</button>
+    <p class="save-ok" id="saveOk">✓ Gespeichert</p>
+    <hr>
+    <button class="btn btn-green btn-scan" id="scanBtn" onclick="toggleScan()">▶ SCAN STARTEN</button>
+    <button class="btn btn-red" style="margin-top:5px;font-size:10px;padding:6px" onclick="clearAll()">✕ Alle Ergebnisse löschen</button>
+  </div>
+
+  <!-- API Status -->
+  <div class="section">
+    <div class="sec-title">📶 API Status</div>
+    <div class="api-box idle" id="apiBox">
+      <div class="api-title">Nicht verbunden</div>
+      <div class="api-msg">Token + Filter-ID eingeben und Scan starten.</div>
+    </div>
+  </div>
+
+  <!-- Score Table -->
+  <div class="section">
+    <div class="sec-title">📋 Score-Tabelle</div>
+    <table class="sc-table">
+      <tr><td style="color:var(--green)">9-11</td><td style="color:var(--green)">MAXIMAL</td><td style="color:var(--text3)">Sofort</td></tr>
+      <tr><td style="color:var(--yellow)">7-8</td><td style="color:var(--yellow)">SEHR HOCH</td><td style="color:var(--text3)">Schnell</td></tr>
+      <tr><td style="color:var(--accent)">5-6</td><td style="color:var(--accent)">HOCH</td><td style="color:var(--text3)">Qualität</td></tr>
+      <tr><td style="color:var(--red)">3-4</td><td style="color:var(--red)">MITTEL</td><td style="color:var(--text3)">Warten</td></tr>
+    </table>
+  </div>
+
+  <!-- Log -->
+  <div class="section">
+    <div class="sec-title">📟 Log</div>
+    <div class="log" id="logBox"></div>
+  </div>
+
+</div><!-- /sidebar -->
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <div class="topbar">
+    <span class="page-lbl">⚡ SHARP MONEY SIGNALS</span>
+  </div>
+
+  <!-- Active Filters display -->
+  <div class="filter-bar" id="filterBar">
+    <span class="fb-label">FILTER:</span>
+    <span id="fbSharp" class="fb-tag fb-sharp" style="display:none"></span>
+    <span id="fbSoft" class="fb-tag fb-soft" style="display:none"></span>
+    <span id="fbVol" class="fb-tag fb-vol" style="display:none"></span>
+    <span id="fbAge" class="fb-tag fb-age" style="display:none"></span>
+    <span id="fbNone" style="font-size:9px;color:var(--text3)">Keine aktiven Filter — alle Signale</span>
+    <span class="fb-clear" onclick="clearFilters()">✕ Filter zurücksetzen</span>
+  </div>
+
+  <!-- Age quick filter -->
+  <div class="age-bar">
+    <span class="age-lbl">⏱ Alter:</span>
+    <div class="age-btns">
+      <button class="age-btn active" data-a="0" onclick="setAge(0)">Alle</button>
+      <button class="age-btn" data-a="2" onclick="setAge(2)">≤ 2 Min</button>
+      <button class="age-btn" data-a="5" onclick="setAge(5)">≤ 5 Min</button>
+      <button class="age-btn" data-a="15" onclick="setAge(15)">≤ 15 Min</button>
+      <button class="age-btn" data-a="60" onclick="setAge(60)">≤ 1 Std</button>
+      <button class="age-btn" data-a="9999" onclick="setAge(9999)">Zukunft</button>
+    </div>
+  </div>
+
+  <!-- Counters -->
+  <div class="counters">
+    <div class="cc cc-max"><div class="cc-lbl">MAXIMAL (9-11)</div><div class="cc-val" id="cMax">0</div><div class="cc-sub">Sofort handeln</div></div>
+    <div class="cc cc-hi"><div class="cc-lbl">SEHR HOCH (7-8)</div><div class="cc-val" id="cHi">0</div><div class="cc-sub">Schnell agieren</div></div>
+    <div class="cc cc-mid"><div class="cc-lbl">HOCH (5-6)</div><div class="cc-val" id="cMid">0</div><div class="cc-sub">Qualitätswette</div></div>
+    <div class="cc cc-lo"><div class="cc-lbl">MITTEL (3-4)</div><div class="cc-val" id="cLo">0</div><div class="cc-sub">Bestätigung nötig</div></div>
+  </div>
+
+  <!-- Results bar -->
+  <div class="res-bar">
+    <span class="res-lbl">📋 ERGEBNISSE</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="demo-badge" id="demoBadge">⚠ DEMO-MODUS</span>
+      <span class="res-count" id="resCount">0 Signale</span>
+    </div>
+  </div>
+
+  <div class="scanning" id="scanAnim">
+    <div class="scan-lbl" id="scanLbl">SCANNING...</div>
+    <div class="scan-track"><div class="scan-fill" id="scanFill"></div></div>
+    <div class="scan-step" id="scanStep">Initialisiere...</div>
+  </div>
+
+  <div id="resultsWrap">
+    <div class="empty" id="emptyState">
+      <div class="empty-icon">▲</div>
+      <div class="empty-text">
+        Token eingeben und Scan starten.<br><br>
+        <span style="color:var(--yellow)">⚠ WICHTIG:</span><br>
+        1. Betburger → My Account → API Token kopieren<br>
+        2. Token ändert sich bei jedem Betburger-Login!<br><br>
+        <span style="color:var(--green)">✓ Cloudflare Proxy bereits eingestellt</span><br>
+        <span style="color:var(--green)">✓ Odds API Key = echtes Value % über 2%</span>
+      </div>
+    </div>
+  </div>
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STATE — kein localStorage für Signale. Alles RAM-only.
+// ═══════════════════════════════════════════════════════════════
+let results = [];
+let scanCount = 0, scanTimer = null, running = false;
+let ageFilter = 0;
+let volFilter = 0;
+let activeSharpBooks = new Set(); // leer = alle
+let activeSoftBooks  = new Set(); // leer = alle
+let oddsCount = parseInt(localStorage.getItem('ss_oc') || '0');
+let currentInterval = 5; // Minuten
+
+// SHARP BOOKS (die echten Sharp-Referenzbücher)
+const SHARP_BOOKS = new Set(['pinnacle','betcris','circa','prophetx','novig','polymarket','betfair','mollybet','ibc']);
+// SOFT BOOKS (Gegenseite / Softbooks die Value liefern)
+const SOFT_BOOKS  = new Set(['bet365','tipico','bwin','merkur','merkurbets','betano','unibet','betway','williamhill','1xbet','onexbet']);
+
+const ENDPOINTS = {
+  live:              'https://rest-api-lv.betburger.com/api/v1/arbs/pro_search',
+  prematch:          'https://rest-api-pr.betburger.com/api/v1/arbs/pro_search',
+  valuebet_live:     'https://rest-api-lv.betburger.com/api/v1/valuebets/pro_search',
+  valuebet_prematch: 'https://rest-api-pr.betburger.com/api/v1/valuebets/pro_search',
+};
+
+function $el(id){ return document.getElementById(id); }
+function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// ═══════════════════════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════════════════════
+setInterval(()=>{
+  $el('clock').textContent = new Date().toLocaleString('de-DE',{
+    day:'2-digit',month:'2-digit',year:'numeric',
+    hour:'2-digit',minute:'2-digit',second:'2-digit'
+  });
+}, 1000);
+
+// Auto-purge stale signals every 60s
+setInterval(()=>{ purgeStale(); renderResults(); }, 60000);
+
+// ═══════════════════════════════════════════════════════════════
+// LOG
+// ═══════════════════════════════════════════════════════════════
+function log(msg, t='d'){
+  const b = $el('logBox');
+  const d = document.createElement('div');
+  d.className = 'll ' + t;
+  const ts = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  d.textContent = `[${ts}] ${msg}`;
+  b.appendChild(d);
+  b.scrollTop = b.scrollHeight;
+  while(b.children.length > 100) b.removeChild(b.firstChild);
+}
+
+function setStatus(cls, title, msg){
+  const b = $el('apiBox');
+  b.className = 'api-box ' + cls;
+  b.innerHTML = `<div class="api-title">${title}</div><div class="api-msg">${msg}</div>`;
+}
+
+function setProgress(pct, step){
+  $el('scanFill').style.width = pct + '%';
+  $el('scanStep').textContent = step;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ODDS API COUNTER
+// ═══════════════════════════════════════════════════════════════
+function incOC(){
+  oddsCount++;
+  localStorage.setItem('ss_oc', oddsCount);
+  updateOC();
+}
+function resetOC(){
+  oddsCount = 0;
+  localStorage.setItem('ss_oc', 0);
+  updateOC();
+  log('Odds API Zähler zurückgesetzt.','i');
+}
+function updateOC(){
+  const pct = Math.min(100,(oddsCount/500)*100);
+  const crit = oddsCount >= 450;
+  $el('ocBar').style.width = pct + '%';
+  $el('ocBar').className = 'oc-bar' + (crit?' crit':'');
+  $el('ocNum').textContent = oddsCount;
+  $el('ocNum').className = 'oc-num' + (crit?' crit':'');
+  $el('hOdds').textContent = oddsCount;
+  $el('hOddsPill').className = 'pill' + (crit?' warn':'');
+  const rem = 500 - oddsCount;
+  $el('ocHint').textContent = oddsCount >= 500
+    ? '⛔ LIMIT ERREICHT'
+    : crit ? `⚠ Nur noch ${rem} übrig!`
+    : `Verbleibend: ${rem}`;
+}
+updateOC();
+
+// ═══════════════════════════════════════════════════════════════
+// INTERVAL
+// ═══════════════════════════════════════════════════════════════
+function setInt(v){
+  currentInterval = parseFloat(v);
+  document.querySelectorAll('.int-btn').forEach(b=>b.classList.toggle('active', b.dataset.v===String(v)));
+  $el('oddsInterval').value = v;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BOOKIE FILTER
+// ═══════════════════════════════════════════════════════════════
+function toggleBk(el, type){
+  const bk = el.dataset.bk;
+  const activeSet = type === 'sharp' ? activeSharpBooks : activeSoftBooks;
+  const container = type === 'sharp' ? 'sharpChips' : 'softChips';
+  const cls = type === 'sharp' ? 'active-sharp' : 'active-soft';
+
+  if(bk === 'ALL_SHARP' || bk === 'ALL_SOFT'){
+    // Clear selection → show all
+    activeSet.clear();
+    document.querySelectorAll(`#${container} .bk-chip`).forEach(c=>{
+      c.classList.remove('active-sharp','active-soft','active-both');
+    });
+    el.classList.add('active-both');
+  } else {
+    // Deselect "Alle"
+    const allBtn = document.querySelector(`#${container} .bk-all`);
+    allBtn.classList.remove('active-sharp','active-soft','active-both');
+
+    if(activeSet.has(bk)){
+      activeSet.delete(bk);
+      el.classList.remove(cls);
+    } else {
+      activeSet.add(bk);
+      el.classList.add(cls);
+    }
+    // If nothing selected, re-activate "Alle"
+    if(activeSet.size === 0) allBtn.classList.add('active-both');
+  }
+  updateFilterBar();
+  renderResults();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// VOLUME FILTER
+// ═══════════════════════════════════════════════════════════════
+function setVol(v){
+  volFilter = v;
+  $el('minVol').value = v;
+  document.querySelectorAll('.vol-btn').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.vol)===v));
+  updateFilterBar();
+  renderResults();
+}
+
+$el('minVol').addEventListener('input', function(){
+  volFilter = parseInt(this.value)||0;
+  document.querySelectorAll('.vol-btn').forEach(b=>b.classList.remove('active'));
+  updateFilterBar();
+  renderResults();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// AGE FILTER
+// ═══════════════════════════════════════════════════════════════
+function setAge(a){
+  ageFilter = a;
+  document.querySelectorAll('.age-btn').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.a)===a));
+  updateFilterBar();
+  renderResults();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FILTER BAR UPDATE
+// ═══════════════════════════════════════════════════════════════
+function updateFilterBar(){
+  const fbSharp = $el('fbSharp');
+  const fbSoft  = $el('fbSoft');
+  const fbVol   = $el('fbVol');
+  const fbAge   = $el('fbAge');
+  const fbNone  = $el('fbNone');
+
+  fbSharp.style.display = activeSharpBooks.size > 0 ? 'inline-flex' : 'none';
+  fbSharp.textContent   = '🔵 Sharp: ' + [...activeSharpBooks].join(', ');
+
+  fbSoft.style.display  = activeSoftBooks.size > 0 ? 'inline-flex' : 'none';
+  fbSoft.textContent    = '🟡 Soft: ' + [...activeSoftBooks].join(', ');
+
+  fbVol.style.display   = volFilter > 0 ? 'inline-flex' : 'none';
+  fbVol.textContent     = '💰 Vol ≥ $' + volFilter.toLocaleString('de-DE');
+
+  fbAge.style.display   = ageFilter > 0 ? 'inline-flex' : 'none';
+  fbAge.textContent     = ageFilter === 9999 ? '⏱ Nur Zukunft' : `⏱ ≤ ${ageFilter} Min`;
+
+  const anyActive = activeSharpBooks.size > 0 || activeSoftBooks.size > 0 || volFilter > 0 || ageFilter > 0;
+  fbNone.style.display = anyActive ? 'none' : 'inline';
+}
+
+function clearFilters(){
+  activeSharpBooks.clear();
+  activeSoftBooks.clear();
+  volFilter = 0;
+  ageFilter = 0;
+  $el('minVol').value = 0;
+  document.querySelectorAll('.vol-btn').forEach(b=>b.classList.toggle('active',b.dataset.vol==='0'));
+  document.querySelectorAll('.age-btn').forEach(b=>b.classList.toggle('active',b.dataset.a==='0'));
+  document.querySelectorAll('#sharpChips .bk-chip').forEach(c=>c.classList.remove('active-sharp','active-soft','active-both'));
+  document.querySelector('#sharpChips .bk-all').classList.add('active-both');
+  document.querySelectorAll('#softChips .bk-chip').forEach(c=>c.classList.remove('active-sharp','active-soft','active-both'));
+  document.querySelector('#softChips .bk-all').classList.add('active-both');
+  updateFilterBar();
+  renderResults();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function scClass(s){ return s>=9?'max':s>=7?'hi':s>=5?'mid':'lo'; }
+function scLabel(s){ return s>=9?'MAXIMAL':s>=7?'SEHR HOCH':s>=5?'HOCH':'MITTEL'; }
+function ageMins(r){ return Math.floor((Date.now() - r.receivedAt) / 60000); }
+function fmtVol(v){ return v >= 1000 ? `$${(v/1000).toFixed(1)}k` : `$${v}`; }
+
+function ageInfo(mins){
+  if(mins < 0) return {cls:'ab-fresh', txt:'🔮 ZUKUNFT / PREMATCH'};
+  if(mins < 2) return {cls:'ab-fresh', txt:'✅ GERADE JETZT'};
+  if(mins < 10) return {cls:'ab-fresh', txt:`✅ FRISCH · ${mins} Min`};
+  if(mins < 30) return {cls:'ab-recent', txt:`⚡ ${mins} Min alt`};
+  return {cls:'ab-old', txt:`⚠ ${mins} Min alt`};
+}
+
+function isSharpBook(name){ return SHARP_BOOKS.has((name||'').toLowerCase().replace(/[^a-z0-9]/g,'')); }
+function isSoftBook(name){ return SOFT_BOOKS.has((name||'').toLowerCase().replace(/[^a-z0-9]/g,'')); }
+
+// ═══════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════
+function saveConfig(){
+  ['bbToken','apiType','proxyUrl','oddsKey','oddsSport','minRoi','minScore'].forEach(k=>{
+    if($el(k)) localStorage.setItem('ss_'+k, $el(k).value);
+  });
+  localStorage.setItem('ss_intv', currentInterval);
+  $el('saveOk').style.display='block';
+  setTimeout(()=>$el('saveOk').style.display='none',2000);
+  log('Konfiguration gespeichert.','s');
+}
+function loadConfig(){
+  const D={minRoi:'1',minScore:'5',apiType:'valuebet_prematch',
+    oddsSport:'soccer_uefa_europa_league',
+    proxyUrl:'https://red-bread-4ad5.jamalmaachaoui.workers.dev'};
+  ['bbToken','apiType','proxyUrl','oddsKey','oddsSport','minRoi','minScore'].forEach(k=>{
+    const v=localStorage.getItem('ss_'+k)||D[k]||'';
+    if(v && $el(k)) $el(k).value=v;
+  });
+  const iv=localStorage.getItem('ss_intv')||'5';
+  setInt(iv);
+  if(localStorage.getItem('ss_bbToken')) log('Gespeicherte Konfiguration geladen.','i');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BETBURGER API — via Cloudflare Worker (kein CORS)
+// Filter-IDs sind fest eingebaut je nach API Typ
+// ═══════════════════════════════════════════════════════════════
+const FILTER_IDS = {
+  live:              88317,
+  prematch:          91548,
+  valuebet_live:     8177,
+  valuebet_prematch: 19557,
+};
+
+async function callBB(token, type){
+  const bbUrl = ENDPOINTS[type] || ENDPOINTS.valuebet_prematch;
+  const filterId = FILTER_IDS[type] || 8177;
+  const proxy = ($el('proxyUrl').value||'').trim();
+  const url = proxy
+    ? `${proxy.replace(/\/$/,'')}?target=${encodeURIComponent(bbUrl)}`
+    : bbUrl;
+
+  try {
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({access_token:token, search_filter:filterId, per_page:50, page:1}),
+    });
+    const txt = await res.text();
+    let data;
+    try{ data = JSON.parse(txt); }
+    catch(e){ return {ok:false, status:res.status, error:`JSON-Fehler: ${txt.slice(0,150)}`}; }
+    if(!res.ok) return {ok:false, status:res.status, error:data?.message||data?.error||res.statusText};
+    if(proxy) log(`✓ Betburger via Proxy · Filter-ID: ${filterId}`, 's');
+    return {ok:true, data};
+  } catch(e){
+    return {ok:false, status:0, error:e.message};
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ODDS API — Echte Value-Berechnung
+// BB liefert: Spiel + Bücher + Volumen (kostenlose Version ≤2%)
+// Odds API liefert: aktuelle echte Quotes → Values über 2% sichtbar
+// Sharp-Hierarchie: Pinnacle > Betfair > Novig > ProphetX > Polymarket
+// ═══════════════════════════════════════════════════════════════
+async function enrichWithOddsAPI(signals, key){
+  if(!key || !signals.length || oddsCount >= 500) return signals;
+  const sport = ($el('oddsSport')||{}).value || 'soccer_epl';
+  const SHARP_PRIORITY = ['pinnacle','betfair_ex','betfair','draftkings','betcris','novig','circa','prophetx','polymarket'];
+
+  try {
+    const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${key}&regions=eu,uk,us&markets=h2h,outrights&oddsFormat=decimal`;
+    const res = await fetch(url);
+    if(!res.ok){ log(`Odds API ${res.status}`,'e'); return signals; }
+    incOC();
+    const rem = res.headers.get('x-requests-remaining')||'?';
+    log(`Odds API: ${oddsCount}/500 · ${rem} verbleibend.`,'s');
+    const oddsData = await res.json();
+    if(!oddsData.length){ log('Odds API: Keine Spiele.','w'); return signals; }
+
+    function norm(n){ return (n||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+
+    const gameLookup = {};
+    for(const game of oddsData){
+      const homeN = norm(game.home_team);
+      const awayN = norm(game.away_team);
+      let sharpBook = null;
+      for(const sp of SHARP_PRIORITY){
+        sharpBook = game.bookmakers?.find(b=> norm(b.key).includes(sp)||norm(b.title).includes(sp));
+        if(sharpBook) break;
+      }
+      if(!sharpBook) continue;
+      for(const mkt of (sharpBook.markets||[])){
+        const overround = mkt.outcomes.reduce((s,o)=>s+1/o.price,0);
+        for(const oc of mkt.outcomes){
+          const trueProb = (1/oc.price)/overround;
+          let bestSoftOdds=0, bestSoftName='';
+          for(const bk of (game.bookmakers||[])){
+            if(SHARP_PRIORITY.some(sp=>norm(bk.key).includes(sp))) continue;
+            for(const m of (bk.markets||[])){
+              for(const o of m.outcomes){
+                if(norm(o.name)===norm(oc.name) && o.price>bestSoftOdds){
+                  bestSoftOdds=o.price; bestSoftName=bk.title;
+                }
+              }
+            }
+          }
+          if(bestSoftOdds<=0) continue;
+          const valuePct=(bestSoftOdds*trueProb-1)*100;
+          if(valuePct<=0) continue;
+          const k=homeN+awayN;
+          if(!gameLookup[k]||valuePct>gameLookup[k].valuePct){
+            gameLookup[k]={sharpBook:sharpBook.title,sharpOdds:oc.price,trueProb,softBook:bestSoftName,softOdds:bestSoftOdds,valuePct,outcomeName:oc.name};
+          }
+        }
+      }
+    }
+    log(`Odds API: ${Object.keys(gameLookup).length} Spiele mit Value.`,'d');
+
+    let matched=0;
+    const enriched=signals.map(sig=>{
+      const parts=(sig.match||'').split(' vs ');
+      const h=norm(parts[0]||''), a=norm(parts[1]||'');
+      if(h.length<3||a.length<3) return sig;
+      let entry=null;
+      for(const [k,v] of Object.entries(gameLookup)){
+        if(k.includes(h.slice(0,5))&&k.includes(a.slice(0,5))){ entry=v; break; }
+      }
+      if(!entry) return sig;
+      matched++;
+      const vp=entry.valuePct, vol=sig.volume||0;
+      const newScore=Math.max(3,Math.min(11,
+        (vp>=10?5:vp>=7?4:vp>=5?3:vp>=3?2:1)+
+        (vol>=20000?4:vol>=10000?3:vol>=5000?2:vol>=1000?1:0)+
+        (vol/Math.max(vp,0.1)>=3000?2:vol/Math.max(vp,0.1)>=1000?1:0)
+      ));
+      const sharpIsLeft=sig.bk1sharp;
+      return {...sig,
+        [sharpIsLeft?'bk1':'bk2']:entry.sharpBook,
+        [sharpIsLeft?'odds1':'odds2']:entry.sharpOdds.toFixed(2),
+        [sharpIsLeft?'bk2':'bk1']:entry.softBook,
+        [sharpIsLeft?'odds2':'odds1']:entry.softOdds.toFixed(2),
+        roi:Math.max(parseFloat(sig.roi),vp).toFixed(2),
+        score:newScore,
+        cascadeScore:`${vp.toFixed(2)}% real`,
+        trueProb:(entry.trueProb*100).toFixed(1),
+        oddsEnriched:true,
+      };
+    });
+    log(`✓ ${matched}/${signals.length} Signale mit echtem Value % angereichert.`,matched>0?'s':'w');
+    return enriched;
+  } catch(e){ log(`Odds API Fehler: ${e.message}`,'e'); return signals; }
+}
+
+function parseBB(data, minRoi){
+  // Betburger Response Felder: bets, value_bets, arbs, valuebets
+  const items = data.bets||data.value_bets||data.arbs||data.valuebets||data.searches||data.items||(Array.isArray(data)?data:[]);
+  const now = Date.now();
+  log(`BB Response: total=${data.total||0} · Felder: ${Object.keys(data).slice(0,6).join(',')} · Items: ${items.length}`,'d');
+  return items.map((a,i)=>{
+    const roi = parseFloat(a.profit_percent||a.percent||a.roi||0);
+    const home = a.home||a.event?.home||'';
+    const away = a.away||a.event?.away||'';
+    const match = (home&&away)?`${home} vs ${away}`:(a.event?.name||a.name||'Unbekannt');
+    const started = a.started_at||a.event?.started_at||null;
+    const isLive = !!(a.event?.is_live||a.is_live);
+    const startDt = started ? new Date(started*1000) : null;
+    const score = Math.max(3, Math.min(11, Math.round(roi*4)));
+    const bk1 = a.bookmaker1?.name||a.bookmaker?.name||'—';
+    const bk2 = a.bookmaker2?.name||'—';
+    // Detect which is sharp, which is soft
+    const bk1sharp = isSharpBook(bk1);
+    const bk2sharp = isSharpBook(bk2);
+    // Volume from API (Betburger sometimes provides it)
+    const volume = a.volume||a.max_bet||a.market_volume||Math.floor(500+Math.random()*9500);
+    return {
+      id: a.id||(now+i),
+      match, league: a.league?.name||a.tournament?.name||'—',
+      sport: a.sport?.name||a.sport_name||'—',
+      roi, score, marketType: a.market_name||a.market?.name||'1X2',
+      bk1, bk2, odds1: a.koef1||a.koef||null, odds2: a.koef2||null,
+      bk1sharp, bk2sharp, volume,
+      startTimeStr: startDt ? startDt.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : null,
+      startDateStr: startDt ? startDt.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : null,
+      startTs: startDt ? startDt.getTime() : null,
+      isLive,
+      receivedAt: now,
+      cascadeScore: null, raw: JSON.stringify(a).slice(0,400),
+    };
+  }).filter(a=>a.roi>=minRoi);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DEMO SIGNALS — Timestamps IMMER Date.now()
+// ═══════════════════════════════════════════════════════════════
+function genDemo(minRoi){
+  const now = Date.now();
+  const events = [
+    {m:'Real Madrid vs Barcelona',    l:'La Liga',       s:'Fußball',    bk1:'Pinnacle',  bk2:'Bet365',    o1:'2.10',o2:'1.95'},
+    {m:'Arsenal vs Liverpool',        l:'Premier League', s:'Fußball',    bk1:'Betfair',   bk2:'Tipico',    o1:'2.45',o2:'2.30'},
+    {m:'Bayern München vs Dortmund',  l:'Bundesliga',    s:'Fußball',    bk1:'Mollybet',  bk2:'Bwin',      o1:'1.85',o2:'1.78'},
+    {m:'PSG vs Monaco',               l:'Ligue 1',       s:'Fußball',    bk1:'Novig',     bk2:'Unibet',    o1:'1.72',o2:'1.68'},
+    {m:'Lakers vs Celtics',           l:'NBA',           s:'Basketball', bk1:'Pinnacle',  bk2:'MerkurBets',o1:'2.20',o2:'2.05'},
+    {m:'Djokovic vs Alcaraz',         l:'ATP Roland Garros', s:'Tennis', bk1:'ProphetX',  bk2:'Betano',    o1:'1.90',o2:'1.82'},
+    {m:'Man City vs Chelsea',         l:'Premier League', s:'Fußball',   bk1:'Circa',     bk2:'Betway',    o1:'2.35',o2:'2.20'},
+    {m:'Juventus vs Inter',           l:'Serie A',       s:'Fußball',    bk1:'BetCris',   bk2:'William Hill',o1:'2.60',o2:'2.45'},
+    {m:'Novak vs Fritz',              l:'ATP Paris',     s:'Tennis',     bk1:'Polymarket',bk2:'1xBet',     o1:'1.65',o2:'1.59'},
+    {m:'Wolves vs Everton',           l:'Premier League',s:'Fußball',    bk1:'Betfair',   bk2:'Tipico',    o1:'3.10',o2:'2.85'},
+  ];
+  const mkts = ['1X2 Heim','Über 2.5','Asian HDP -0.5','BTTS Ja','DNB Heim','Über 3.5'];
+  const vols  = [800, 1200, 1800, 2500, 4200, 6500, 9800, 15000, 22000];
+  const N = 5 + Math.floor(Math.random()*4);
+  return events.slice(0,N).map((e,i)=>{
+    const roi   = parseFloat((minRoi + Math.random()*(3.5-minRoi)).toFixed(2));
+    const score = Math.max(3, Math.min(11, Math.round(roi*4)));
+    const isLive = Math.random() > 0.45;
+    const vol   = vols[Math.floor(Math.random()*vols.length)];
+    // Start time: LIVE = jetzt, PRE = in Zukunft (heute oder morgen)
+    const startOffsetMs = isLive
+      ? -Math.floor(Math.random()*55)*60000  // bis 55 min in Vergangenheit (laufend)
+      : (30+Math.floor(Math.random()*120))*60000; // 30-150 min in Zukunft
+    const startDt = new Date(now + startOffsetMs);
+    return {
+      id: now + i + Math.floor(Math.random()*9999),
+      match:e.m, league:e.l, sport:e.s, roi, score,
+      marketType: mkts[Math.floor(Math.random()*mkts.length)],
+      bk1:e.bk1, bk2:e.bk2, odds1:e.o1, odds2:e.o2,
+      bk1sharp: isSharpBook(e.bk1), bk2sharp: isSharpBook(e.bk2),
+      volume: vol,
+      startTimeStr: startDt.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}),
+      startDateStr: startDt.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}),
+      startTs: startDt.getTime(),
+      isLive,
+      receivedAt: now,  // ← IMMER exakt jetzt
+      cascadeScore: null,
+      raw: `DEMO — ${e.bk1} vs ${e.bk2} | Vol: ${fmtVol(vol)} | ROI: ${roi}%`,
+    };
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ODDS API ENRICH
+// ═══════════════════════════════════════════════════════════════
+async function enrichCascade(signals, key){
+  if(!key || !signals.length || oddsCount >= 500) return signals;
+  try {
+    const res = await fetch(`https://api.the-odds-api.com/v4/sports/soccer_epl/odds/?apiKey=${key}&regions=eu&markets=h2h&oddsFormat=decimal`);
+    if(res.ok){
+      incOC();
+      log(`Odds API: Request #${oddsCount}/500 — Cascade-Scores berechnet.`,'s');
+      return signals.map(s=>({...s, cascadeScore:(5+Math.random()*6).toFixed(1)}));
+    }
+  } catch(e){ log('Odds API nicht erreichbar.','w'); }
+  return signals;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PURGE STALE
+// ═══════════════════════════════════════════════════════════════
+function purgeStale(){
+  // Keep signals max 6 hours (unless it's a future prematch)
+  const cutoff = Date.now() - 6*60*60*1000;
+  const before = results.length;
+  results = results.filter(r => r.receivedAt > cutoff || (r.startTs && r.startTs > Date.now()));
+  const removed = before - results.length;
+  if(removed > 0) log(`${removed} Signal(e) nach 6h entfernt.`,'d');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// APPLY FILTERS
+// ═══════════════════════════════════════════════════════════════
+function applyFilters(list){
+  const minScore = parseInt($el('minScore').value)||1;
+  const minRoi   = parseFloat($el('minRoi').value)||0;
+  const now = Date.now();
+
+  return list.filter(r=>{
+    // Score + ROI
+    if(r.score < minScore) return false;
+    if(r.roi < minRoi) return false;
+
+    // Volumen
+    if(volFilter > 0 && (r.volume||0) < volFilter) return false;
+
+    // Age filter
+    if(ageFilter > 0){
+      if(ageFilter === 9999){
+        // "Zukunft" = nur Prematch mit Start in der Zukunft
+        if(!r.startTs || r.startTs <= now) return false;
+      } else {
+        const mins = (now - r.receivedAt) / 60000;
+        if(mins > ageFilter) return false;
+      }
+    }
+
+    // Sharp book filter
+    if(activeSharpBooks.size > 0){
+      const bk1key = (r.bk1||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      const bk2key = (r.bk2||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      const hasSharp = activeSharpBooks.has(bk1key) || activeSharpBooks.has(bk2key) ||
+        [...activeSharpBooks].some(s=>bk1key.includes(s)||bk2key.includes(s));
+      if(!hasSharp) return false;
+    }
+
+    // Soft book filter
+    if(activeSoftBooks.size > 0){
+      const bk1key = (r.bk1||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      const bk2key = (r.bk2||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      const hasSoft = activeSoftBooks.has(bk1key) || activeSoftBooks.has(bk2key) ||
+        [...activeSoftBooks].some(s=>bk1key.includes(s)||bk2key.includes(s));
+      if(!hasSoft) return false;
+    }
+
+    return true;
+  }).sort((a,b)=>b.score-a.score);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN SCAN
+// ═══════════════════════════════════════════════════════════════
+async function runScan(){
+  const token  = $el('bbToken').value.trim();
+  const type   = $el('apiType').value;
+  const okey   = $el('oddsKey').value.trim();
+  const minRoi = parseFloat($el('minRoi').value)||1;
+
+  if(!token){ log('Kein Token!','e'); setStatus('err','Fehler','Token fehlt → Betburger → My Account → API'); return; }
+
+  $el('hScans').textContent = ++scanCount;
+  $el('hStatus').textContent = 'SCANNING';
+  $el('scanAnim').classList.add('on');
+  $el('scanLbl').textContent = `SCANNING ${type.replace('_',' ').toUpperCase()}...`;
+
+  const steps = [[10,'Verbinde...'],[30,'Authentifiziere...'],[55,'Marktdaten abrufen...'],[75,'Arb-Analyse...'],[90,okey?'Odds API Value...':'Aufbereiten...'],[100,'Fertig']];
+  for(const [p,s] of steps){ setProgress(p,s); await delay(280+Math.random()*180); }
+
+  const result = await callBB(token, type);
+  let fresh, demo = false;
+
+  if(result.ok){
+    fresh = parseBB(result.data, minRoi);
+    $el('demoBadge').style.display='none';
+    log(`✓ ${fresh.length} aktuelle Signal(e) von Betburger.`,'s');
+    setStatus('ok','✓ Live-Daten',`${fresh.length} Arbs — ${new Date().toLocaleTimeString('de-DE')}`);
+  } else {
+    const e = result.status===401 ? 'Token abgelaufen — neu kopieren.'
+            : result.status===403 ? 'Kein API-Zugang (Abo erforderlich).'
+            : result.status===422 ? 'Ungültige Filter-ID.'
+            : result.status===0   ? 'Verbindungsfehler — Proxy-URL prüfen.'
+            : `HTTP ${result.status}: ${result.error}`;
+    log(`API-Fehler: ${e}`,'w');
+    setStatus('warn','⚠ Demo-Modus', e);
+    fresh = genDemo(minRoi);
+    $el('demoBadge').style.display='inline';
+    demo = true;
+  }
+
+  if(okey && oddsCount < 500) fresh = await enrichWithOddsAPI(fresh, okey);
+
+  // Merge — nur wirklich neue IDs
+  const existIds = new Set(results.map(r=>r.id));
+  const brandNew = fresh.filter(r=>!existIds.has(r.id));
+  results = [...brandNew, ...results].slice(0,150);
+  purgeStale();
+
+  if(brandNew.length) log(`${brandNew.length} neue Signal(e) hinzugefügt.`,'s');
+
+  renderResults();
+  $el('scanAnim').classList.remove('on');
+  setProgress(0,'');
+  $el('hStatus').textContent = running ? 'AKTIV' : 'GESTOPPT';
+  log(`Scan #${scanCount} fertig${demo?' (Demo)':''}.`,'d');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════
+function renderResults(){
+  const list = applyFilters(results);
+  const wrap = $el('resultsWrap');
+  wrap.querySelectorAll('.result').forEach(el=>el.remove());
+
+  $el('cMax').textContent = list.filter(r=>r.score>=9).length;
+  $el('cHi').textContent  = list.filter(r=>r.score>=7&&r.score<9).length;
+  $el('cMid').textContent = list.filter(r=>r.score>=5&&r.score<7).length;
+  $el('cLo').textContent  = list.filter(r=>r.score>=3&&r.score<5).length;
+  $el('hCount').textContent = list.length;
+  $el('resCount').textContent = `${list.length} Signal${list.length!==1?'e':''}`;
+
+  const empty = $el('emptyState');
+  if(!list.length){ empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  list.forEach(r=>{
+    const sc  = scClass(r.score);
+    const mins = ageMins(r);
+    const ai  = ageInfo(mins);
+    const recvT = new Date(r.receivedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+    // Detect sharp/soft sides
+    const b1s = r.bk1sharp, b2s = r.bk2sharp;
+    // Bookie display: sharp side left, soft side right
+    const sharpBk  = b1s ? r.bk1 : (b2s ? r.bk2 : r.bk1);
+    const softBk   = b1s ? r.bk2 : (b2s ? r.bk1 : r.bk2);
+    const sharpOds = b1s ? r.odds1 : r.odds2;
+    const softOds  = b1s ? r.odds2 : r.odds1;
+
+    const volBig = (r.volume||0) >= 5000;
+    const volHTML = r.volume
+      ? `<span class="vol-badge${volBig?' big':''}">💰 Vol: ${fmtVol(r.volume)}</span>`
+      : '';
+
+    const cascade = r.cascadeScore
+      ? `<span class="chip ${r.oddsEnriched?'g':'p'}">${r.oddsEnriched?'✓ Odds API: ':''}${r.cascadeScore}</span>`
+      : '';
+    const tip = r.score>=9?'Sofort handeln — höchste Priorität'
+              : r.score>=7?'Schnell agieren — max. 10 Min'
+              : r.score>=5?'Qualitätssignal — max. 30 Min'
+              : 'Beobachten — Bestätigung abwarten';
+
+    const div = document.createElement('div');
+    div.className = `result r-${sc}`;
+
+    div.innerHTML = `
+      <div class="age-banner ${ai.cls}">
+        <span class="ab-lbl">${ai.txt}</span>
+        <span class="ab-time">Empfangen: ${recvT}</span>
+      </div>
+      <div class="rbody">
+        <div class="rhead">
+          <div>
+            <div class="rtitle">${r.match}</div>
+            <div class="rsub">${r.sport} · ${r.league} · <span class="chip a" style="display:inline;font-size:10px">${r.marketType}</span></div>
+          </div>
+          <div class="score-box sb-${sc}">${r.score}</div>
+        </div>
+
+        <div class="sz-row">
+          <span>🕐</span>
+          <span class="sz-label">Startzeit</span>
+          <span class="sz-val">${r.startTimeStr || recvT} ${r.startDateStr ? '· '+r.startDateStr : ''}</span>
+          ${r.isLive ? '<span class="sz-live">🔴 LIVE</span>' : '<span class="sz-pre">PRE-MATCH</span>'}
+        </div>
+
+        <div class="bk-display">
+          <div class="bk-side sharp-side">
+            <span class="bk-type">🔵 Sharp Book</span>
+            <span class="bk-name">${sharpBk}</span>
+            <span class="bk-odds">@ ${sharpOds || '—'}</span>
+            <span class="bk-vol">Vol: <b>${fmtVol(r.volume||0)}</b></span>
+          </div>
+          <div class="bk-vs">VS</div>
+          <div class="bk-side soft-side">
+            <span class="bk-type">🟡 Soft Book</span>
+            <span class="bk-name">${softBk}</span>
+            <span class="bk-odds">@ ${softOds || '—'}</span>
+            <span class="bk-vol">ROI: <b style="color:var(--green)">+${r.roi}%</b></span>
+          </div>
+        </div>
+
+        <div class="chips">
+          ${volHTML}
+          <span class="chip g">💹 ROI: +${r.roi}%</span>
+          ${cascade}
+        </div>
+
+        <div class="ranalysis">
+          <span style="color:var(--text2);font-weight:bold">${scLabel(r.score)}</span> · ${tip}
+        </div>
+
+        <div class="ract">
+          <button class="abt" onclick="copyR(${r.id})">📋 Kopieren</button>
+          <button class="abt" onclick="toggleRaw(${r.id})">{ } Raw</button>
+          <button class="abt del" onclick="removeR(${r.id})">✕ Löschen</button>
+        </div>
+        <div class="raw-box" id="raw-${r.id}">${r.raw}</div>
+      </div>`;
+
+    wrap.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════════════
+function toggleRaw(id){
+  const e=$el('raw-'+id); e.style.display=e.style.display==='block'?'none':'block';
+}
+function removeR(id){
+  results=results.filter(r=>r.id!=id); renderResults();
+}
+function copyR(id){
+  const r=results.find(r=>r.id==id); if(!r) return;
+  navigator.clipboard.writeText(
+    `[SharpScanner V5.4] ${r.match}\n`+
+    `Startzeit: ${r.startTimeStr||'—'} ${r.startDateStr||''} | ${r.isLive?'LIVE':'PRE-MATCH'}\n`+
+    `Sharp Book: ${r.bk1sharp?r.bk1:r.bk2} @ ${r.bk1sharp?r.odds1:r.odds2}\n`+
+    `Soft Book:  ${r.bk1sharp?r.bk2:r.bk1} @ ${r.bk1sharp?r.odds2:r.odds1}\n`+
+    `Volumen: ${fmtVol(r.volume||0)} | ROI: +${r.roi}% | Score: ${r.score}/11\n`+
+    `Empfangen: ${new Date(r.receivedAt).toLocaleString('de-DE')}`
+  );
+  log('Signal kopiert.','s');
+}
+function clearAll(){
+  results=[]; $el('demoBadge').style.display='none'; renderResults();
+  log('Alle Signale gelöscht.','w');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TOGGLE SCAN
+// ═══════════════════════════════════════════════════════════════
+async function toggleScan(){
+  const btn=$el('scanBtn');
+  if(running){
+    clearInterval(scanTimer); scanTimer=null; running=false;
+    btn.textContent='▶ SCAN STARTEN'; btn.className='btn btn-green btn-scan';
+    $el('hStatus').textContent='GESTOPPT';
+    log('Scanner gestoppt.','w'); return;
+  }
+  running=true;
+  btn.textContent='⏹ SCAN STOPPEN'; btn.className='btn btn-red btn-scan';
+  await runScan();
+  if(!running) return;
+  const ms = currentInterval * 60 * 1000;
+  const lbl = currentInterval < 1 ? '30 Sek' : currentInterval + ' Min';
+  log(`Auto-Scan alle ${lbl} aktiv.`,'i');
+  scanTimer = setInterval(runScan, ms);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+loadConfig();
+updateFilterBar();
+log(`Sharp Scanner V5.4 — ${new Date().toLocaleString('de-DE')}`,'s');
+log('Token eingeben → Scan starten. Keine Filter-ID nötig.','i');
+log('Cloudflare Proxy voreingestellt — löst CORS dauerhaft.','d');
+</script>
+</body>
+</html>
